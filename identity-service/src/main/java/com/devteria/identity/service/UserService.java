@@ -7,6 +7,7 @@ import com.devteria.identity.dto.request.ProfileCreationRequest;
 import com.devteria.identity.dto.response.UserProfileResponse;
 import com.devteria.identity.mapper.ProfileMapper;
 import com.devteria.identity.repository.httpclient.ProfileClient;
+import jakarta.transaction.Transactional;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,6 +29,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +44,8 @@ public class UserService {
     PasswordEncoder passwordEncoder;
     ProfileClient profileClient;
 
+
+    @Transactional
     public UserResponse createUser(UserCreationRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) throw new AppException(ErrorCode.USER_EXISTED);
 
@@ -59,8 +64,9 @@ public class UserService {
 
         UserProfileResponse profileResponse = profileClient.createProfile(profileCreationRequest);
 
-
-        return userMapper.toUserResponse(user);
+        UserResponse userResponse = userMapper.toUserResponse(user);
+        userResponse.setProfile(profileResponse);
+        return userResponse;
     }
 
     public UserResponse getMyInfo() {

@@ -8,7 +8,10 @@ import com.devteria.profile.repository.UserProfileRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +20,7 @@ public class UserProfileService {
     UserProfileRepository userProfileRepository;
     UserProfileMapper userProfileMapper;
 
+//    Create profile for user
     public UserProfileResponse createProfile(ProfileCreationRequest request)
     {
         UserProfile userProfile = userProfileMapper.toUserProfile(request);
@@ -33,5 +37,15 @@ public class UserProfileService {
         );
 
         return userProfileMapper.toUserProfileResponse(userProfile);
+    }
+
+//    Get all user profiles
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<UserProfileResponse> getAllProfile()
+    {
+        return userProfileRepository.findAll()
+                .stream()
+                .map(u -> userProfileMapper.toUserProfileResponse(u))
+                .toList();
     }
 }
